@@ -4,77 +4,64 @@
 #include <vector>
 #include <string>
 #include "GameTurnScreen.hpp"
-#include "Game.hpp"
+#include "../include/Game.hpp"
 
 class GUI {
+public:
+    GUI();
+    void run();
+
 private:
-    // ====== Window and Font ======
+    enum class ScreenState {
+        Welcome,
+        SelectPlayerCount,
+        NameInput,
+        Game
+    };
+
     sf::RenderWindow window;
-    sf::Font font;
-
-    // כפתור Start Game
-    sf::RectangleShape startGameButton;
-    sf::Text startGameText;
-
-    // ====== Screen State ======
-    enum class ScreenState { Welcome, SelectPlayerCount, NameInput, Game };
     ScreenState state;
     bool justSwitchedScreen;
-
-    // ====== Game Logic ======
-    coup::Game game; 
-    GameTurnScreen* gameTurnScreen;
-    bool gameStarted;
-    bool readyClicked;
-
-    // ====== Player Info ======
-    std::vector<std::string> playerNames;
     int selectedPlayerCount;
     int currentInputIndex;
     int activeNameBoxIndex;
+    GameTurnScreen* gameTurnScreen;
+    bool readyClicked;
+    bool gameStarted;
 
-    // ====== UI Components ======
+    coup::Game game;
+    std::vector<std::string> playerNames;
+    sf::Font font;
 
-    // Welcome screen
+    // Welcome screen elements
     sf::Text titleText;
     sf::RectangleShape startButton;
     sf::Text startText;
     sf::RectangleShape exitButton;
     sf::Text exitText;
 
-    // Player count screen
+    // Player count selection elements
     sf::Text playerCountTitle;
     std::vector<sf::RectangleShape> playerCountButtons;
     std::vector<sf::Text> playerCountTexts;
-
-    // Back button (shared)
     sf::RectangleShape backButton;
     sf::Text backText;
 
-    // Name input screen
+    // Name input elements
     sf::Text nameInputTitle;
     std::vector<sf::RectangleShape> nameInputBoxes;
     std::vector<sf::Text> nameInputTexts;
-    std::vector<sf::Text> nameLabels;
     std::vector<std::string> nameBuffers;
+    std::vector<sf::Text> nameLabels;
+    sf::RectangleShape startGameButton;
+    sf::Text startGameText;
 
-    // Ready button
-    sf::RectangleShape readyButton;
-    sf::Text readyText;
-
-    // ====== Internal Methods ======
     void initWelcome();
     void initSelectPlayerCount();
     void initNameInput();
     void initGame();
-
     void handleEvent();
     void update();
     void draw();
-
-    void startGameIfReady();  
-
-public:
-    GUI();
-    void run();
+    void startGameIfReady();
 };

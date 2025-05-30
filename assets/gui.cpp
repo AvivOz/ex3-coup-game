@@ -10,13 +10,13 @@
 GUI::GUI()
     : window(sf::VideoMode(800, 600), "Coup Game"),
       state(ScreenState::Welcome),
+      justSwitchedScreen(false),  // הסדר כאן חשוב
+      selectedPlayerCount(0), 
       currentInputIndex(0),
-      selectedPlayerCount(0),
-      justSwitchedScreen(false),
       activeNameBoxIndex(-1),
       gameTurnScreen(nullptr),
-      readyClicked(false) {
-
+      readyClicked(false)
+    {
     if (!font.loadFromFile("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf")) {
         std::cerr << "Failed to load font" << std::endl;
     }
@@ -188,6 +188,7 @@ void GUI::handleEvent() {
     while (window.pollEvent(event)) {
         if (event.type == sf::Event::Closed) {
             window.close();
+            return;
         }
 
         // Order matters: handle game screen event before checking state change
@@ -202,8 +203,8 @@ void GUI::handleEvent() {
                 gameTurnScreen = nullptr;
                 game.reset();
                 justSwitchedScreen = true;
-                return;
             }
+            return;
         }
 
         // Welcome screen

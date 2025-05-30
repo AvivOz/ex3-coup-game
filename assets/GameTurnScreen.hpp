@@ -12,13 +12,13 @@ public:
 
     void draw(sf::RenderWindow& window);
     void handleEvent(sf::RenderWindow& window);
-    bool didRequestQuit() const;
+    bool didRequestQuit() const { return quitRequested; }  // הגדרה אחת בלבד כאן
 
 private:
     std::vector<coup::Player*>& players;
     coup::Game& game;
     int currentTurnIndex;
-    bool quitRequested = false;
+    bool quitRequested;
 
     sf::Font font;
     sf::Text turnText;
@@ -30,10 +30,10 @@ private:
     sf::Text quitText;
 
     // arrest target selection UI
-    bool selectingArrestTarget = false;
+    bool selectingArrestTarget;
     std::vector<sf::Text> arrestTargetButtons;
 
     void initButtons();
-    void updatePlayerDisplays();
-    void advanceTurn();
+    void advanceTurn();  // הוספת הפונקציה פה
+    void handleAction(const std::string& action); 
 };

@@ -1,6 +1,6 @@
 CXX = g++
 CXXFLAGS = -std=c++17 -Wall -Wextra
-INCLUDES = -Iinclude -IGUI
+INCLUDES = -I./include
 
 SRC_FILES = \
 	src/Baron.cpp \
@@ -14,9 +14,11 @@ SRC_FILES = \
 	src/Spy.cpp
 
 GUI_FILES = \
-	GUI/gui.cpp \
-	GUI/GameTurnScreen.cpp \
-	GUI/main.cpp
+	src/GUI/WelcomeScreen.cpp \
+	src/GUI/PlayerSelectionScreen.cpp \
+	src/GUI/GameScreen.cpp \
+	src/GUI/gui.cpp \
+	src/GUI/main.cpp
 
 LIBS = -lsfml-graphics -lsfml-window -lsfml-system
 
