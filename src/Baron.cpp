@@ -1,35 +1,38 @@
-// aurhor: avivoz4@gmail.com
+// author: avivoz4@gmail.com
 
 #include "Baron.hpp"
+#include <stdexcept>
 
-using namespace coup;
-using namespace std;
+namespace coup {
 
-Baron::Baron(Game& game, const string& name)
-    : Player(game,  name) {}
+Baron::Baron(Game& game, const std::string& name)
+      : Player(game, name) {
+    game.add_player(this); 
+}
 
 void Baron::invest() {
-
-    if (num_of_coins < 3) {
-        throw runtime_error("Not enough coins to invest");
-    }
+    prepare_for_turn();
 
     if (sanctioned_until_next_turn) {
-        throw runtime_error("You are sanctioned and cannot invest this turn");
+        throw std::runtime_error("You are sanctioned and cannot invest this turn");
     }
 
-    num_of_coins -= 3;
-    num_of_coins += 6;
+    enforce_coup_requirement();  // בדיקת 10 מטבעות
+
+    if (num_of_coins < 3) {
+        throw std::runtime_error("Not enough coins to invest");
+    }
+
+    num_of_coins -= 3;  // הורדת המטבעות להשקעה
+    num_of_coins += 6;  // קבלת הרווח מההשקעה
 
     last_action = ActionType::Invest;
     awaiting_block = true;
-    sanctioned_until_next_turn = false;
-    can_arrest = true;
-
     game.next_turn();
 }
 
-string Baron::get_role() const {
+std::string Baron::get_role() const {
     return "Baron";
 }
- 
+
+}  

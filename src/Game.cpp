@@ -1,100 +1,154 @@
-// author: avivoz4@gmail.com
-
 #include "Game.hpp"
 #include "Player.hpp"
-
-#include <vector>
-#include <string>
 #include <stdexcept>
+#include <algorithm>
 #include <iostream>
 
 namespace coup {
 
-    std::vector<std::string> Game::players() const {
-        std::vector<std::string> active_players;
-        for (const Player* player : players_list) {
-            if (player->alive()) {
-                active_players.push_back(player->get_name());
-            }
+Game::Game() : current_player_index(0), game_started(false) {}
+
+std::vector<std::string> Game::players_list() const {
+    std::vector<std::string> names;
+    for (const auto& player : players) {
+        if (player->alive()) {
+            names.push_back(player->get_name());
         }
-        return active_players;
+    }
+    return names;
+}
+
+std::string Game::turn() const {
+    if (players.empty()) {
+        throw std::runtime_error("No players in game");
+    }
+    return players[current_player_index]->get_name();
+}
+
+std::string Game::winner() const {
+    if (!game_started) {
+        throw std::runtime_error("Game hasn't started yet");
     }
 
-    std::string Game::turn() const {
-
-        if (players_list.empty()) {
-            std::cerr << "[Game::turn] Error: players_list is empty!" << std::endl;
-            return "UNKNOWN";
+    std::vector<Player*> alive_players;
+    for (const auto& player : players) {
+        if (player->alive()) {
+            alive_players.push_back(player);
         }
-        if (current_player_index >= players_list.size()) {
-            std::cerr << "[Game::turn] Error: current_player_index is out of bounds!" << std::endl;
-            return "UNKNOWN";
-        }
-        if (players_list[current_player_index] == nullptr) {
-            std::cerr << "[Game::turn] Error: current player is nullptr!" << std::endl;
-            return "UNKNOWN";
-        }
-
-        std::string name = players_list[current_player_index]->get_name();
-        std::cout << "[Game::turn] current player name: " << name << std::endl;
-        return name;
     }
 
-    std::string Game::winner() const {
-        std::vector<Player*> alive_players;
-        for (Player* player : players_list) {
-            if (player->alive()) {
-                alive_players.push_back(player);
-            }
-        }
-
-        if (alive_players.size() == 1) {
-            return alive_players[0]->get_name();
-        }
-
-        throw std::runtime_error("The game is still ongoing - no winner yet");
+    if (alive_players.size() != 1) {
+        throw std::runtime_error("Game is still in progress");
     }
 
-    void Game::add_player(Player* player) {
-        if (players_list.size() >= 6) {
-            throw std::runtime_error("Maximum 6 players allowed");
-        }
-        players_list.push_back(player);
+    return alive_players[0]->get_name();
+}
+
+void Game::next_turn() {
+    if (players.size() < 2) {
+        throw std::runtime_error("Not enough players to start the game");
     }
 
-    void Game::next_turn() {
-        if (players_list.empty()) return;
-
-        size_t original_index = current_player_index;
-
-        do {
-            current_player_index = (current_player_index + 1) % players_list.size();
-        } while (!players_list[current_player_index]->alive() && current_player_index != original_index);
-    }
-
-    void Game::eliminate_player(Player* player) {
-        player->eliminate();
-    }
-
-    void Game::apply_coup(Player& target) {
-        target.eliminate();
-        eliminate_player(&target);
-    }
-
-    void Game::reset() {
-        for (Player* player : players_list) {
-            delete player;
-        }
-        players_list.clear();
+    if (!game_started) {
+        game_started = true;
         current_player_index = 0;
+        players[current_player_index]->start_turn_bonus();
+        return;
     }
 
-    std::vector<Player*>& Game::get_players_list() {
-        return players_list;
+    // שומרים את הפעולה האחרונה של השחקן הנוכחי
+    ActionType last_action = players[current_player_index]->get_last_action();
+
+    size_t start_index = current_player_index;
+    current_player_index = (current_player_index + 1) % players.size();
+
+    while (!players[current_player_index]->alive()) {
+        current_player_index = (current_player_index + 1) % players.size();
+        
+        if (current_player_index == start_index) {
+            if (players[start_index]->alive()) {
+                current_player_index = start_index;
+                players[current_player_index]->start_turn_bonus();
+                return;
+            }
+            throw std::runtime_error("No alive players to move to");
+        }
+    }
+    
+    // משחזרים את הפעולה האחרונה לשחקן הבא
+    players[current_player_index]->save_last_action(last_action);
+    players[current_player_index]->start_turn_bonus();
+}
+
+void Game::add_player(Player* player) {
+    if (player == nullptr) {
+        throw std::runtime_error("Cannot add null player");
+    }
+    if (players.size() >= 6) {
+        throw std::runtime_error("Maximum number of players reached");
+    }
+    std::cout << "Adding player: " << player->get_name() << " (" << player->get_role() << ")" << std::endl;
+    players.push_back(player);
+}
+
+void Game::apply_coup(Player& target) {
+    if (!target.alive()) {
+        throw std::runtime_error("Cannot coup an eliminated player");
     }
 
-    const std::vector<Player*>& Game::get_players_list() const {
-        return players_list;
+    size_t attacker_index = current_player_index;
+
+    target.eliminate();
+    
+    int alive_count = 0;
+    Player* last_alive = nullptr;
+    
+    for (const auto& player : players) {
+        if (player->alive()) {
+            alive_count++;
+            last_alive = player;
+        }
     }
+    
+    if (alive_count <= 1 && last_alive != nullptr) {
+        game_started = false;
+        current_player_index = find_player_index(last_alive);
+    }
+
+    // אם המשחק ממשיך, מעבירים את התור לשחקן הבא החי
+    current_player_index = attacker_index;
+    next_turn();
+}
+
+bool Game::has_started() const {
+    return game_started;
+}
+
+size_t Game::num_of_players() const {
+    return players.size();
+}
+
+size_t Game::find_player_index(Player* player) const {
+    for (size_t i = 0; i < players.size(); i++) {
+        if (players[i] == player) {
+            return i;
+        }
+    }
+    return 0;
+}
+
+Player* Game::getCurrentPlayer() const {
+    if (players.empty()) {
+        throw std::runtime_error("No players in game");
+    }
+    return players[current_player_index];
+}
+
+bool Game::is_alive(size_t index) const {
+    if (index >= players.size()) {
+        return false;
+    }
+    return players[index]->alive();
+}
 
 } 

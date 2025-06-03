@@ -1,15 +1,9 @@
+// WelcomeScreen.hpp
 #pragma once
-
 #include <SFML/Graphics.hpp>
+#include <string>
 
 class WelcomeScreen {
-public:
-    WelcomeScreen();
-    void draw(sf::RenderWindow& window);
-    bool handleEvent(sf::RenderWindow& window, sf::Event& event);
-    bool shouldStartGame() const { return startGame; }
-    bool shouldExit() const { return exit; }
-
 private:
     sf::Font font;
     sf::Text titleText;
@@ -17,9 +11,19 @@ private:
     sf::Text startButtonText;
     sf::RectangleShape exitButton;
     sf::Text exitButtonText;
+    bool startGame;  
     
-    bool startGame;
-    bool exit;
-
+    // הוספת המשתנים החדשים לתמונת הרקע
+    sf::Texture backgroundTexture;
+    sf::Sprite backgroundSprite;
+    
     void initializeComponents();
+    void centerText(sf::Text& text, float yPosition);
+    void centerButtonText(sf::Text& text, const sf::RectangleShape& button, const std::string& str);
+
+public:
+    WelcomeScreen();
+    bool handleEvent(const sf::Event& event, sf::RenderWindow& window);
+    void draw(sf::RenderWindow& window);
+    bool shouldStartGame() const;  
 };

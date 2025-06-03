@@ -1,11 +1,27 @@
-#include "../include/GUI/gui.hpp"
-#include "../include/playerFactory.hpp"
-#include <iostream>
+#include "GUI/gui.hpp"
+#include "GUI/WelcomeScreen.hpp"      
+#include "GUI/PlayerSelectionScreen.hpp"  
+#include "GUI/GameScreen.hpp"         
 
-GUI::GUI() : window(sf::VideoMode(800, 600), "Coup Game"), 
-             currentScreen(Screen::Welcome),
-             gameScreen(nullptr) {
-    window.setFramerateLimit(60);
+GUI::GUI() : window(sf::VideoMode(800, 600), "Coup Game"), currentScreen(Screen::Welcome) {
+    welcomeScreen = new WelcomeScreen();
+    playerSelectionScreen = new PlayerSelectionScreen();
+    gameScreen = new GameScreen();
+}
+
+GUI::~GUI() {
+    delete welcomeScreen;
+    delete playerSelectionScreen;
+    delete gameScreen;
+}
+
+void GUI::switchToGame() {
+    if (currentScreen != Screen::Game) {
+        currentScreen = Screen::Game;
+        const auto& playerNames = playerSelectionScreen->getPlayerNames();
+        const auto& roles = playerSelectionScreen->getSelectedRoles();
+        gameScreen->initializeGame(playerNames, roles);
+    }
 }
 
 void GUI::handleEvents() {
@@ -13,47 +29,43 @@ void GUI::handleEvents() {
     while (window.pollEvent(event)) {
         if (event.type == sf::Event::Closed) {
             window.close();
-            return;
         }
 
         switch (currentScreen) {
             case Screen::Welcome:
-                if (welcomeScreen.handleEvent(window, event)) {
-                    if (welcomeScreen.shouldExit()) {
-                        window.close();
-                    }
-                    else if (welcomeScreen.shouldStartGame()) {
+                if (welcomeScreen->handleEvent(event, window)) {
+                    if (welcomeScreen->shouldStartGame()) {
+                        delete welcomeScreen;
+                        welcomeScreen = nullptr;
                         currentScreen = Screen::PlayerSelection;
-                        playerSelectionScreen.reset();
+                        // איפוס מסך בחירת השחקנים לפני המעבר אליו
+                        playerSelectionScreen->reset();
                     }
                 }
                 break;
 
             case Screen::PlayerSelection:
-                if (playerSelectionScreen.handleEvent(window, event)) {
-                    if (playerSelectionScreen.isSelectionComplete()) {
-                        // Create new game
-                        game.reset();
-                        const auto& names = playerSelectionScreen.getPlayerNames();
-                        for (const auto& name : names) {
-                            playerFactory(game, name);
-                        }
-                        
-                        if (gameScreen != nullptr) {
-                            delete gameScreen;
-                        }
-                        gameScreen = new GameScreen(game, game.get_players_list());
-                        currentScreen = Screen::Game;
+                if (playerSelectionScreen->handleEvent(event, window)) {
+                    if (playerSelectionScreen->shouldStartGame()) {
+                        switchToGame();
+                    } else if (playerSelectionScreen->shouldGoBack()) {
+                        currentScreen = Screen::Welcome;
+                        welcomeScreen = new WelcomeScreen();
+                        // איפוס מסך בחירת השחקנים כשחוזרים למסך הראשי
+                        playerSelectionScreen->reset();
                     }
                 }
                 break;
 
             case Screen::Game:
-                if (gameScreen && gameScreen->handleEvent(window, event)) {
-                    if (gameScreen->shouldQuit()) {
-                        delete gameScreen;
-                        gameScreen = nullptr;
+                if (gameScreen->handleEvent(event, window)) {
+                    if (gameScreen->shouldGoBack()) {
                         currentScreen = Screen::Welcome;
+                        // איפוס מסך בחירת השחקנים כשחוזרים מהמשחק
+                        playerSelectionScreen->reset();
+                        if (!welcomeScreen) {
+                            welcomeScreen = new WelcomeScreen();
+                        }
                     }
                 }
                 break;
@@ -62,19 +74,23 @@ void GUI::handleEvents() {
 }
 
 void GUI::update() {
-    // Additional update logic if needed
+    // No additional updates needed at this point
 }
 
-void GUI::draw() {
-    window.clear(sf::Color(30, 30, 30));
+void GUI::render() {
+    window.clear(sf::Color(50, 50, 50));
 
     switch (currentScreen) {
         case Screen::Welcome:
-            welcomeScreen.draw(window);
+            if (welcomeScreen) {
+                welcomeScreen->draw(window);
+            }
             break;
 
         case Screen::PlayerSelection:
-            playerSelectionScreen.draw(window);
+            if (playerSelectionScreen) {
+                playerSelectionScreen->draw(window);
+            }
             break;
 
         case Screen::Game:
@@ -91,6 +107,6 @@ void GUI::run() {
     while (window.isOpen()) {
         handleEvents();
         update();
-        draw();
+        render();
     }
 }

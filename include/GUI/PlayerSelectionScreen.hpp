@@ -1,20 +1,17 @@
 #pragma once
-
 #include <SFML/Graphics.hpp>
 #include <vector>
 #include <string>
 
 class PlayerSelectionScreen {
-public:
-    PlayerSelectionScreen();
-    void draw(sf::RenderWindow& window);
-    bool handleEvent(sf::RenderWindow& window, sf::Event& event);
-    bool isSelectionComplete() const;
-    const std::vector<std::string>& getPlayerNames() const;
-    void reset();
-    bool shouldGoBack() const { return goBack; }
-
 private:
+    int activeInputBox;
+    int selectedPlayerCount;
+    bool namingPhase;
+    bool goBack;
+    bool startGame;
+    int focusedInputBox;  // הוספנו משתנה חדש לעקיבה אחר תיבת הקלט הממוקדת
+
     sf::Font font;
     sf::Text titleText;
     std::vector<sf::RectangleShape> playerCountButtons;
@@ -22,18 +19,31 @@ private:
     std::vector<sf::RectangleShape> nameInputBoxes;
     std::vector<sf::Text> nameTexts;
     std::vector<std::string> playerNames;
+    std::vector<std::string> availableRoles;
+    std::vector<std::string> selectedRoles;
     
     sf::RectangleShape backButton;
     sf::Text backButtonText;
-    sf::RectangleShape startButton;
-    sf::Text startButtonText;
-    
-    int selectedPlayerCount;
-    int activeInputBox;
-    bool namingPhase;
-    bool goBack;
-    bool startGame;
+    sf::RectangleShape readyButton;
+    sf::Text readyButtonText;
 
     void initializeComponents();
     void createPlayerInputs();
+    void centerText(sf::Text& text, float yPosition);
+    void centerButtonText(sf::Text& text, const sf::RectangleShape& button, const std::string& str);
+    bool isSelectionComplete() const;
+    void assignRandomRoles();
+    bool isDuplicateName(const std::string& name, int currentIndex) const;
+    void focusNextInput();  // פונקציה חדשה למעבר בין תיבות
+    void updateInputBoxColors();  // פונקציה חדשה לעדכון צבעי התיבות
+
+public:
+    PlayerSelectionScreen();
+    bool handleEvent(const sf::Event& event, sf::RenderWindow& window);
+    void draw(sf::RenderWindow& window);
+    bool shouldGoBack() const;
+    bool shouldStartGame() const;
+    const std::vector<std::string>& getPlayerNames() const;
+    const std::vector<std::string>& getSelectedRoles() const;
+    void reset();
 };

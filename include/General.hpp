@@ -12,6 +12,7 @@ namespace coup {
         General(Game& game, const std::string& name);
 
         void block_coup(Player& attacker, Player& target);
+        void receive_arrest() override;
         std::string get_role() const override;
     };
 

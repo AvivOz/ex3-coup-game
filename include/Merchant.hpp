@@ -11,7 +11,7 @@ namespace coup {
         public:
 
             Merchant(Game& game, const std::string& name);
-        
+            void receive_arrest() override;
             std::string get_role() const override;
     };
 }

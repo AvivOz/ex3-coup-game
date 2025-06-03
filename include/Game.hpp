@@ -1,34 +1,29 @@
 #pragma once
-
-#include <string>
 #include <vector>
-#include <stdexcept>
+#include <string>
 
 namespace coup {
-
-    class Player;
+    class Player;  
 
     class Game {
-
     private:
-        std::vector<Player*> players_list;
-        size_t current_player_index = 0;
+        std::vector<Player*> players;
+        size_t current_player_index;
+        bool game_started;
+        bool is_alive(size_t index) const; 
 
     public:
-        Game() : current_player_index(0) {}
-
-        std::vector<std::string> players() const;
-        std::vector<Player*>& get_players_list();
-        const std::vector<Player*>& get_players_list() const;
+        Game();
+        std::vector<std::string> players_list() const;
         std::string turn() const;
         std::string winner() const;
-
-        void add_player(Player* player);
         void next_turn();
-        void eliminate_player(Player* player);
+        void add_player(Player* player);
         void apply_coup(Player& target);
-
-        void reset();
+        bool has_started() const;
+        size_t num_of_players() const;
+        size_t find_player_index(Player* player) const;
+        
+        Player* getCurrentPlayer() const;
     };
-
 }

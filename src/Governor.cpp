@@ -1,12 +1,16 @@
 // author: avivoz4@gmail.com
 
 #include "Governor.hpp"
+#include <stdexcept>
+#include <iostream>
 
 using namespace coup;
 using namespace std;
 
 Governor::Governor(Game& game, const string& name)
-    : Player(game, name) {}
+    : Player(game, name) {
+    game.add_player(this); 
+}
 
 void Governor::tax() {
 
@@ -22,20 +26,31 @@ void Governor::tax() {
 }
 
 void Governor::cancel_tax(Player& target) {
+    std::cout << "Governor attempting to cancel tax for " << target.get_name() << std::endl;
+
     if (!target.alive()) {
-        throw runtime_error("Cannot cancel tax of eliminated player");
+        throw std::runtime_error("Cannot cancel tax of eliminated player");
     }
 
-    if (target.coins() < 2) {
-        throw runtime_error("Target does not have enough coins to cancel the tax action he did");
+    if (target.get_name() == name) {
+        throw std::runtime_error("Cannot cancel your own tax");
     }
 
-    if (!target.is_awaiting_block() || target.get_last_action() != ActionType::Tax) {
-        throw runtime_error("Target's last action was not tax or it is no longer blockable");
+    if (target.isTaxCancelledForCurrentTurn()) {
+        throw std::runtime_error("This player's tax was already cancelled this turn");
     }
 
-    target.removeCoins(2);
-    last_action = ActionType::Undo;
+    // בדיקת הפעולה האחרונה
+    if (target.get_last_action() != ActionType::Tax && target.get_last_action() != ActionType::Gather) {
+        throw std::runtime_error("Player's last action was not tax or gather");
+    }
+
+    // במקום לנסות להוריד מטבעות ישירות, נשתמש בפונקציה tax_cancelled
+    target.tax_cancelled();
+    
+    last_action = ActionType::Cancel_Tax;
+    std::cout << "Tax/Gather cancelled successfully for " << target.get_name() << std::endl;
+    game.next_turn();
 }
 
 string Governor::get_role() const {

@@ -1,25 +1,17 @@
 #pragma once
-
 #include "Player.hpp"
-#include "Governor.hpp"
-#include "Spy.hpp"
-#include "Baron.hpp"
-#include "General.hpp"
-#include "Judge.hpp"
-#include "Merchant.hpp"
 #include "Game.hpp"
-#include <vector>
+#include "Governor.hpp"
+#include "Judge.hpp"
+#include "General.hpp"
+#include "Baron.hpp"
+#include "Merchant.hpp"
+#include "Spy.hpp"
 #include <string>
 
-using namespace coup;
-using std::string;
-using std::vector;
-
 namespace coup {
-
-    /**
-     * @brief this function creates a player according to the role and adds it to the playersList in use for the GUI.
-     */
-    Player* playerFactory(Game& game, const std::string& name);
-
+    class PlayerFactory {
+    public:
+        static Player* createPlayer(const std::string& role, Game& game, const std::string& name);
+    };
 }

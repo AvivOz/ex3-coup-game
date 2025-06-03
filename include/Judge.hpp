@@ -13,6 +13,7 @@ namespace coup {
         Judge(Game& game, const std::string& name);
 
         void cancel_bribe(Player& target);
+        void receive_sanction() override;
         std::string get_role() const override;
     };
 

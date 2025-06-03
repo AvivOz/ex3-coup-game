@@ -1,21 +1,26 @@
 #include "playerFactory.hpp"
-#include <vector>
-#include <string>
-#include <random>
+#include <stdexcept>
 
 namespace coup {
-
-    Player* playerFactory(Game& game, const std::string& name) {
-        static std::vector<std::string> roles = {"Governor", "Spy", "Baron", "General", "Judge", "Merchant"};
-        static std::mt19937 rng(std::random_device{}());
-        static std::uniform_int_distribution<> dist(0, roles.size() - 1);
-
-        std::string role = roles[dist(rng)];
-        if (role == "Governor") return new Governor(game, name);
-        if (role == "Spy") return new Spy(game, name);
-        if (role == "Baron") return new Baron(game, name);
-        if (role == "General") return new General(game, name);
-        if (role == "Judge") return new Judge(game, name);
-        return new Merchant(game, name);
+    Player* PlayerFactory::createPlayer(const std::string& role, Game& game, const std::string& name) {
+        if (role == "Governor") {
+            return new Governor(game, name);
+        }
+        else if (role == "Judge") {
+            return new Judge(game, name);
+        }
+        else if (role == "General") {
+            return new General(game, name);
+        }
+        else if (role == "Baron") {
+            return new Baron(game, name);
+        }
+        else if (role == "Merchant") {
+            return new Merchant(game, name);
+        }
+        else if (role == "Spy") {
+            return new Spy(game, name);
+        }
+        throw std::runtime_error("Invalid player role: " + role);
     }
 }

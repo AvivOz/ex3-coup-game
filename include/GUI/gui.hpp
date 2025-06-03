@@ -1,33 +1,31 @@
 #pragma once
-
 #include <SFML/Graphics.hpp>
-#include "WelcomeScreen.hpp"
-#include "PlayerSelectionScreen.hpp"
-#include "GameScreen.hpp"
-#include "../include/Game.hpp"
+
+// Forward declarations
+class WelcomeScreen;
+class PlayerSelectionScreen;
+class GameScreen;
+
+enum class Screen {
+    Welcome,
+    PlayerSelection,
+    Game
+};
 
 class GUI {
-public:
-    GUI();
-    void run();
-
 private:
-    enum class Screen {
-        Welcome,
-        PlayerSelection,
-        Game
-    };
-
     sf::RenderWindow window;
     Screen currentScreen;
-    
-    WelcomeScreen welcomeScreen;
-    PlayerSelectionScreen playerSelectionScreen;
+    WelcomeScreen* welcomeScreen;
+    PlayerSelectionScreen* playerSelectionScreen;
     GameScreen* gameScreen;
-    
-    coup::Game game;
 
+public:
+    GUI();
+    ~GUI();
     void handleEvents();
     void update();
-    void draw();
+    void render();
+    void switchToGame();
+    void run();  
 };

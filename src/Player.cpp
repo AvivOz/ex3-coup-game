@@ -1,62 +1,33 @@
+// author: avivoz4@gmail.com
+
 #include "Player.hpp"
 #include <stdexcept>
+#include <iostream>
 
-using namespace coup;
-using namespace std;
+namespace coup {
 
-Player::Player(Game& game, const string& name)
-    : name(name), game(game), num_of_coins(0), is_alive(true),
-      sanctioned_until_next_turn(false), can_arrest(true),
-      awaiting_block(false), last_action(ActionType::None),
-      bonus_applied(false), taxCancelledThisTurn(false), bribeCancelledThisTurn(false) {
-    game.add_player(this);
-}
+Player* Player::global_last_arrested_player = nullptr;
 
-bool Player::isTaxCancelledForCurrentTurn() const {
-    return taxCancelledThisTurn;
-}
-
-void Player::setTaxCancelledThisTurn(bool value) {
-    taxCancelledThisTurn = value;
-}
-
-bool Player::isBribeCancelledForCurrentTurn() const {
-    return bribeCancelledThisTurn;
-}
-
-void Player::setBribeCancelledThisTurn(bool value) {
-    bribeCancelledThisTurn = value;
-}
-
-void Player::reset_turn_flags() {
-    bonus_applied = false;
-    taxCancelledThisTurn = false;
-    bribeCancelledThisTurn = false;
-}
-
-void Player::start_turn_bonus() {
-    if (!bonus_applied && get_role() == "Merchant" && coins() >= 3) {
-        ++num_of_coins;
-        bonus_applied = true;
-    }
-}
-
-void Player::enforce_coup_requirement() const {
-    if (coins() >= 10) {
-        throw runtime_error("You must perform coup when you have 10 or more coins");
-    }
-}
-
-void Player::prepare_for_turn() {
-    start_turn_bonus();
-    enforce_coup_requirement();
+Player::Player(Game& game, const std::string& name)
+    : name(name)
+    , game(game)
+    , num_of_coins(0)
+    , is_alive(true)
+    , sanctioned_until_next_turn(false)
+    , can_arrest(true)
+    , awaiting_block(false)
+    , last_arrested_target(nullptr)
+    , last_action(ActionType::None)
+    , bonus_applied(false)
+    , taxCancelledThisTurn(false)
+    , bribeCancelledThisTurn(false) {
 }
 
 void Player::gather() {
     prepare_for_turn();
 
     if (sanctioned_until_next_turn) {
-        throw runtime_error("You are sanctioned and cannot perform gather this turn");
+        throw std::runtime_error("Error: You are sanctioned and cannot perform gather this turn");
     }
 
     ++num_of_coins; 
@@ -67,10 +38,9 @@ void Player::gather() {
 }
 
 void Player::tax() {
-    prepare_for_turn();
 
     if (sanctioned_until_next_turn) {
-        throw runtime_error("You are sanctioned and cannot perform tax this turn");
+        throw std::runtime_error("Error: You are sanctioned and cannot perform tax this turn");
     }
 
     num_of_coins += 2;
@@ -83,8 +53,12 @@ void Player::tax() {
 void Player::bribe() {
     prepare_for_turn();
 
+    if (sanctioned_until_next_turn) {
+        throw std::runtime_error("You are sanctioned and cannot bribe this turn");
+    }
+
     if (num_of_coins < 4) {
-        throw runtime_error("Not enough coins to bribe");
+        throw std::runtime_error("Not enough coins to bribe");
     }
 
     num_of_coins -= 4;
@@ -93,53 +67,40 @@ void Player::bribe() {
 }
 
 void Player::arrest(Player& target) {
-    prepare_for_turn();
+    enforce_coup_requirement();
+    can_perform_arrest();
 
-    if (!can_arrest) {
-        throw std::runtime_error("You are blocked from arresting this turn");
+    if (&target == global_last_arrested_player) {
+        throw std::runtime_error("Error: This player was already arrested in the last turn");
     }
 
     if (!target.alive()) {
-        throw runtime_error("You cannot arrest an eliminated player");
+        throw std::runtime_error("Error: Cannot arrest a dead player");
     }
 
-    if (target.num_of_coins == 0) {
-        throw runtime_error("Target has no coins to steal");
-    }
-
-    if (target.get_role() == "Merchant") {
-        if (target.coins() < 2) {
-            throw runtime_error("Merchant does not have enough coins to be arrested");
+    try {
+        target.receive_arrest();
+        if (target.get_role() != "Merchant") {
+            this->addCoins(1);
         }
-        target.removeCoins(2);
-    } else {
-        target.removeCoins(1);
-        ++num_of_coins;
-
-        if (target.get_role() == "General") {
-            target.addCoins(1);
-        }
+        this->last_action = ActionType::Arrest;
+        global_last_arrested_player = &target;
+        reset_sanctions();
+        game.next_turn();
+    } catch (const std::exception& e) {
+        throw;
     }
-
-    if (target.get_role() == "General") {
-        target.addCoins(1);
-    }
-
-    reset_sanctions();
-    clear_last_action();
-    last_action = ActionType::Arrest;
-    game.next_turn();
 }
 
 void Player::sanction(Player& target) {
     prepare_for_turn();
 
     if (num_of_coins < 3) {
-        throw runtime_error("You don't have enough money to perform sanction");
+        throw std::runtime_error("You don't have enough money to perform sanction");
     }
 
     if (!target.alive()) {
-        throw runtime_error("You cannot sanction an eliminated player");
+        throw std::runtime_error("You cannot sanction an eliminated player");
     }
 
     num_of_coins -= 3;
@@ -156,33 +117,44 @@ void Player::sanction(Player& target) {
 }
 
 void Player::coup(Player& target) {
-    prepare_for_turn();
+    if (!alive()) {
+        throw std::runtime_error("Dead player cannot perform actions");
+    }
 
     if (num_of_coins < 7) {
-        throw runtime_error("You don't have enough money to perform coup");
+        throw std::runtime_error("You don't have enough money to perform coup (need 7 coins)");
     }
 
     if (!target.alive()) {
-        throw runtime_error("You cannot sanction an eliminated player");
+        throw std::runtime_error("Cannot coup an eliminated player");
+    }
+
+    if (&target == this) {
+        throw std::runtime_error("Cannot coup yourself");
     }
 
     num_of_coins -= 7;
-    game.apply_coup(target);
-    reset_sanctions();
-    awaiting_block = false;
     last_action = ActionType::Coup;
-    game.next_turn();
+    awaiting_block = true;
+}
+
+void Player::receive_arrest() {
+    if (coins() > 0) {
+        removeCoins(1);
+    } else {
+        throw std::runtime_error("Target player has no coins");
+    }
 }
 
 void Player::invest() {
-    throw runtime_error("This role cannot perform invest");
+    throw std::runtime_error("This role cannot perform invest");
 }
 
 int Player::coins() const {
     return num_of_coins;
 }
 
-const string& Player::get_name() const {
+const std::string& Player::get_name() const {
     return name;
 }
 
@@ -204,11 +176,24 @@ void Player::undo_elimination() {
 
 void Player::reset_sanctions() {
     sanctioned_until_next_turn = false;
-    can_arrest = true;
 }
 
 void Player::block_arrest() {
     can_arrest = false;
+}
+
+void Player::can_perform_arrest() const {
+    if (!can_arrest) {
+        throw std::runtime_error("Error: You are blocked from performing arrest this turn");
+    }
+}
+
+void Player::reset_arrest_target() {
+    last_arrested_target = nullptr;
+}
+
+bool Player::must_coup() const {
+    return coins() >= 10;
 }
 
 void Player::addCoins(int amount) {
@@ -216,10 +201,29 @@ void Player::addCoins(int amount) {
 }
 
 void Player::removeCoins(int amount) {
-    if (num_of_coins < amount) {
-        throw runtime_error("Not enough coins to remove");
+    if (amount > num_of_coins) {
+        throw std::runtime_error("Cannot remove more coins than player has");
     }
     num_of_coins -= amount;
+}
+
+void Player::tax_cancelled() {
+    if (last_action == ActionType::Tax) {
+        if (get_role() == "Governor") {
+            removeCoins(3);  
+        } else {
+            removeCoins(2);  
+        }
+    } else if (last_action == ActionType::Gather) {
+        removeCoins(1);  
+    }
+    
+    taxCancelledThisTurn = true;
+    clear_last_action();
+}
+
+void Player::save_last_action(ActionType action) {
+    last_action = action;
 }
 
 ActionType Player::get_last_action() const {
@@ -240,4 +244,57 @@ void Player::receive_sanction() {
     if (get_role() == "Baron") {
         addCoins(1);
     }
+}
+
+void Player::bribe_cancelled() {
+    if (last_action == ActionType::Bribe) {
+        bribeCancelledThisTurn = true;
+    }
+}
+
+void Player::start_turn_bonus() {
+    if (!bonus_applied && get_role() == "Merchant" && coins() >= 3) {
+        std::cout << "Merchant bonus: Adding 1 coin at start of turn (current coins: " 
+                  << coins() << ")" << std::endl;
+        ++num_of_coins;
+        bonus_applied = true;
+    }
+}
+
+void Player::reset_turn_flags() {
+    bonus_applied = false;
+    taxCancelledThisTurn = false;
+    bribeCancelledThisTurn = false;
+}
+
+void Player::enforce_coup_requirement() const {
+    if (coins() >= 10 && last_action != ActionType::Coup) {
+        throw std::runtime_error("You must perform coup when you have 10 or more coins");
+    }
+}
+
+void Player::prepare_for_turn() {
+    reset_turn_flags();
+    
+    if (this == global_last_arrested_player) {
+        global_last_arrested_player = nullptr;
+    }
+}
+
+bool Player::isTaxCancelledForCurrentTurn() const {
+    return taxCancelledThisTurn;
+}
+
+void Player::setTaxCancelledThisTurn(bool value) {
+    taxCancelledThisTurn = value;
+}
+
+bool Player::isBribeCancelledForCurrentTurn() const {
+    return bribeCancelledThisTurn;
+}
+
+void Player::setBribeCancelledThisTurn(bool value) {
+    bribeCancelledThisTurn = value;
+}
+
 }
