@@ -1,69 +1,49 @@
-🃏 Coup Game – CPP_EX3
-Author: Aviv Oz
-Repository: https://github.com/AvivOz/ex3-coup-game
+# Coup Game – CPP_EX3  
+Author: Aviv Oz  
+Repository: https://github.com/AvivOz/ex3-coup-game  
 
-📑 Table of Contents
-Project Overview
+## Table of Contents  
+- Project Overview  
+- Game Description  
+- Project Structure  
+- Features Implemented  
+- Requirements  
+- Installation & Setup  
+- How to Run  
+- Game Rules  
+- Character Roles  
+- Technical Implementation  
+- Testing  
+- Memory Management  
 
-Game Description
-
-Project Structure
-
-Features Implemented
-
-Requirements
-
-Installation & Setup
-
-How to Run
-
-Game Rules
-
-Character Roles
-
-Technical Implementation
-
-Testing
-
-Memory Management
-
-🧩 Project Overview
-This project implements the Coup card game in C++ as part of Assignment 3 in System Programming 2.
+## Project Overview  
+This project implements the Coup card game in C++ as part of Assignment 3 in System Programming 2.  
 It includes both a command-line version (main.cpp) and a full graphical version using SFML.
 
-🎲 Game Description
-Players:
+## Game Description  
+Players:  
+- Are randomly assigned a unique role at the beginning.  
+- Take turns performing actions to gain coins, eliminate others, or block opponents.  
+- Use role-specific abilities and strategic plays.  
+- The objective is to be the last surviving player.
 
-Are randomly assigned a unique role at the beginning.
-
-Take turns performing actions to gain coins, eliminate others, or block opponents.
-
-Use role-specific abilities and strategic plays.
-
-The objective is to be the last surviving player.
-
-📁 Project Structure
-css
-Copy
-Edit
+## Project Structure  
+```
 ex3-coup-game/
 ├── Makefile
 ├── README.md
-│
 ├── main.cpp
-│
 ├── include/
 │   ├── Game.hpp
 │   ├── PlayerFactory.hpp
-│   └── Roles/
-│       ├── Player.hpp
-│       ├── Governor.hpp
-│       ├── Judge.hpp
-│       ├── General.hpp
-│       ├── Baron.hpp
-│       ├── Merchant.hpp
-│       └── Spy.hpp
-│
+│   ├── Roles/
+│   │   ├── Player.hpp
+│   │   ├── Governor.hpp
+│   │   ├── Judge.hpp
+│   │   ├── General.hpp
+│   │   ├── Baron.hpp
+│   │   ├── Merchant.hpp
+│   │   └── Spy.hpp
 │   └── GUI/
 │       ├── Button.hpp
 │       ├── GUIManager.hpp
@@ -71,19 +51,17 @@ ex3-coup-game/
 │       ├── PlayerInputScreen.hpp
 │       ├── RoleRevealScreen.hpp
 │       └── GameTurnScreen.hpp
-│
 ├── src/
 │   ├── Game.cpp
 │   ├── PlayerFactory.cpp
-│   └── Roles/
-│       ├── Player.cpp
-│       ├── Governor.cpp
-│       ├── Judge.cpp
-│       ├── General.cpp
-│       ├── Baron.cpp
-│       ├── Merchant.cpp
-│       └── Spy.cpp
-│
+│   ├── Roles/
+│   │   ├── Player.cpp
+│   │   ├── Governor.cpp
+│   │   ├── Judge.cpp
+│   │   ├── General.cpp
+│   │   ├── Baron.cpp
+│   │   ├── Merchant.cpp
+│   │   └── Spy.cpp
 │   └── GUI/
 │       ├── Button.cpp
 │       ├── GUIManager.cpp
@@ -91,151 +69,122 @@ ex3-coup-game/
 │       ├── PlayerInputScreen.cpp
 │       ├── RoleRevealScreen.cpp
 │       └── GameTurnScreen.cpp
-│
 ├── GUI/
 │   └── main_gui.cpp
-│
 ├── Tests/
 │   └── demo_test.cpp
-✅ Features Implemented
-Turn-based game engine
+```
 
-Command-line game via main.cpp
+## Features Implemented  
+- Turn-based game engine  
+- Command-line game via main.cpp  
+- Full graphical game with SFML  
+- Role system using inheritance and polymorphism  
+- Random role assignment via factory pattern  
+- Coin-based actions: gather, tax, bribe, arrest, sanction, coup  
+- Special role abilities and block mechanics  
+- Game win detection and rule enforcement  
+- Clean modular structure with GUI separation  
 
-Full graphical game with SFML
+## Requirements  
+- g++ with C++17 support  
+- Linux (tested on Ubuntu)  
+- Make  
+- libsfml-dev  
+- Valgrind (optional)
 
-Role system using inheritance and polymorphism
+## Installation & Setup  
 
-Random role assignment via factory pattern
-
-Coin-based actions: gather, tax, bribe, arrest, sanction, coup
-
-Special role abilities and block mechanics
-
-Game win detection, elimination, and validation
-
-Clean modular structure with GUI/logic separation
-
-🛠 Requirements
-g++ with C++17 support
-
-Linux (tested on Ubuntu)
-
-Make
-
-SFML (libsfml-dev)
-
-Valgrind (optional)
-
-🔧 Installation & Setup
-Clone the repository:
-
-bash
-Copy
-Edit
+Clone the repository:  
+```
 git clone https://github.com/AvivOz/ex3-coup-game.git
 cd ex3-coup-game
-Check compilers:
+```
 
-css
-Copy
-Edit
+Check compilers:  
+```
 g++ --version
 make --version
-Install SFML (for GUI):
+```
 
-sql
-Copy
-Edit
+Install SFML:  
+```
 sudo apt update
 sudo apt install libsfml-dev
-For Windows/macOS – refer to:
-https://www.sfml-dev.org/download.php
+```
 
-▶️ How to Run
-Run command-line version
+For Windows/macOS – visit: https://www.sfml-dev.org/download.php
 
-css
-Copy
-Edit
+## How to Run  
+
+Command-line version:  
+```
 make Main
 ./main
-Run GUI version
+```
 
-go
-Copy
-Edit
+Graphical version:  
+```
 make gui_run
-Run tests
+```
 
-bash
-Copy
-Edit
+Run tests:  
+```
 make test
-Check for memory leaks
+```
 
-go
-Copy
-Edit
+Check memory leaks:  
+```
 make valgrind
-📜 Game Rules
-Action	Description
-Gather	+1 coin
-Tax	+2 coins (Governor: +3)
-Bribe	Pay 4 coins to get an extra turn
-Arrest	Take 1 coin from another player
-Sanction	Block economic actions of a player until next turn
-Coup	Pay 7 coins to eliminate a player (mandatory at 10+)
-Win	Be the last surviving player
+```
 
-🧑‍💼 Character Roles
-Role	Special Ability	Block Capability
-Governor	Tax for +3 coins	Can block others' tax
-Judge	Immune to bribes	Can block bribes
-General	Can block coups	Bonus on arrest
-Baron	Gains bonus from sanctions	Can invest coins
-Merchant	Bonus if holding ≥3 coins	Bonus when arrested
-Spy	Peek opponent's coins	Can block arrests
+## Game Rules  
 
-🧠 Technical Implementation
-Object-Oriented Design
-Each role inherits from Player and overrides its actions.
+| Action   | Description |
+|----------|-------------|
+| Gather   | +1 coin |
+| Tax      | +2 coins (Governor gets +3) |
+| Bribe    | Pay 4 coins for an extra turn |
+| Arrest   | Take 1 coin from another player |
+| Sanction | Block economic actions of a player |
+| Coup     | Pay 7 coins to eliminate a player (mandatory at 10+) |
+| Win      | Last player remaining wins |
 
-Factory Pattern
-PlayerFactory creates role instances dynamically.
+## Character Roles  
 
-SFML GUI
-Modular screen structure: Welcome → Input → Reveal → Game Turn.
+| Role     | Special Ability             | Block Capability         |
+|----------|-----------------------------|---------------------------|
+| Governor | Tax for +3 coins            | Block tax actions         |
+| Judge    | Immune to bribes            | Block bribes              |
+| General  | Can block coups             | Bonus on arrest           |
+| Baron    | Bonus from sanctions        | Can invest coins          |
+| Merchant | Bonus if holding ≥3 coins   | Bonus when arrested       |
+| Spy      | View opponent's coins       | Block arrests             |
 
-Turn Management
-Eliminated players are skipped, coup is enforced if 10+ coins, and rule validation is strict.
+## Technical Implementation  
+- Object-Oriented Design with base Player class and role inheritance  
+- Factory pattern to generate role objects  
+- GUI built modularly with SFML  
+- Turn management and elimination logic  
+- Enforced coup rule for 10+ coins  
 
-🧪 Testing
-Test file: Tests/demo_test.cpp
-Includes 30+ test cases for:
+## Testing  
+Located in: `Tests/demo_test.cpp`  
+Includes 30+ test cases for:  
+- Game mechanics  
+- Turn order  
+- Role-specific behavior  
+- Invalid actions  
+- Win detection  
 
-Core mechanics
-
-Role behavior
-
-Turn rotation
-
-Input validation
-
-Win condition logic
-
-Run tests:
-
-go
-Copy
-Edit
+Run with:  
+```
 make test
 make valgrind
-🧼 Memory Management
-Verified with Valgrind – no leaks
+```
 
-RAII and destructors used correctly
-
-No raw pointer misuse
-
-Exception-safe handling throughout the game
+## Memory Management  
+- Verified with Valgrind – no leaks  
+- Smart pointers and RAII  
+- No raw pointer misuse  
+- Exception-safe cleanup
