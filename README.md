@@ -18,7 +18,7 @@ Repository: https://github.com/AvivOz/ex3-coup-game
 
 ## Project Overview  
 This project implements the Coup card game in C++ as part of Assignment 3 in System Programming 2.  
-It includes both a command-line version (main.cpp) and a full graphical version using SFML.
+It includes both a command-line version (`main.cpp`) and a full graphical version using SFML.
 
 ## Game Description  
 Players:  
@@ -32,11 +32,12 @@ Players:
 ex3-coup-game/
 ├── Makefile
 ├── README.md
-├── main.cpp
+├── main.cpp                        # Command-line version
+│
 ├── include/
-│   ├── Game.hpp
-│   ├── PlayerFactory.hpp
 │   ├── Roles/
+│   │   ├── Game.hpp
+│   │   ├── PlayerFactory.hpp
 │   │   ├── Player.hpp
 │   │   ├── Governor.hpp
 │   │   ├── Judge.hpp
@@ -45,16 +46,15 @@ ex3-coup-game/
 │   │   ├── Merchant.hpp
 │   │   └── Spy.hpp
 │   └── GUI/
-│       ├── Button.hpp
-│       ├── GUIManager.hpp
 │       ├── WelcomeScreen.hpp
-│       ├── PlayerInputScreen.hpp
-│       ├── RoleRevealScreen.hpp
-│       └── GameTurnScreen.hpp
+│       ├── PlayerSelectionScreen.hpp
+│       ├── GameScreen.hpp
+│       └── gui.hpp
+│
 ├── src/
-│   ├── Game.cpp
-│   ├── PlayerFactory.cpp
 │   ├── Roles/
+│   │   ├── Game.cpp
+│   │   ├── PlayerFactory.cpp
 │   │   ├── Player.cpp
 │   │   ├── Governor.cpp
 │   │   ├── Judge.cpp
@@ -63,21 +63,19 @@ ex3-coup-game/
 │   │   ├── Merchant.cpp
 │   │   └── Spy.cpp
 │   └── GUI/
-│       ├── Button.cpp
-│       ├── GUIManager.cpp
 │       ├── WelcomeScreen.cpp
-│       ├── PlayerInputScreen.cpp
-│       ├── RoleRevealScreen.cpp
-│       └── GameTurnScreen.cpp
-├── GUI/
-│   └── main_gui.cpp
+│       ├── PlayerSelectionScreen.cpp
+│       ├── GameScreen.cpp
+│       ├── gui.cpp
+│       └── main.cpp
+│
 ├── Tests/
 │   └── demo_test.cpp
 ```
 
 ## Features Implemented  
 - Turn-based game engine  
-- Command-line game via main.cpp  
+- Command-line game via `main.cpp`  
 - Full graphical game with SFML  
 - Role system using inheritance and polymorphism  
 - Random role assignment via factory pattern  
