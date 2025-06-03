@@ -56,7 +56,6 @@ void Game::next_turn() {
         return;
     }
 
-    // שומרים את הפעולה האחרונה של השחקן הנוכחי
     ActionType last_action = players[current_player_index]->get_last_action();
 
     size_t start_index = current_player_index;
@@ -75,7 +74,6 @@ void Game::next_turn() {
         }
     }
     
-    // משחזרים את הפעולה האחרונה לשחקן הבא
     players[current_player_index]->save_last_action(last_action);
     players[current_player_index]->start_turn_bonus();
 }
